@@ -10,9 +10,17 @@ class BitbayService
 {
     private $bitbayApi;
 
-    public function login($publicKey, $privateKey){
-        $this->bitbayApi = new BitbayApi($publicKey, $privateKey);
-        return $this;
+    public function login(){
+        $publicKey = config('bitbay.public_key');
+        $privateKey = config('bitbay.private_key');
+
+        if($publicKey && $privateKey){
+            $this->bitbayApi = new BitbayApi($publicKey, $privateKey);
+            return $this;
+        }
+
+        print_r('No keys!!!');
+        die();
     }
 
     public function getTicker($market = false){
@@ -37,6 +45,24 @@ class BitbayService
             "rate" => $rate,
             "price" => null,
             "offerType" => 'BUY',
+            "mode" => "limit",
+            "postOnly" => null,
+            "fillOrKill" => null
+        ];
+
+        return $this->bitbayApi->callApi(
+            '/trading/offer/'.$market,
+            $params,
+            'POST'
+        );
+    }
+
+    public function createSellOffer($market, $amount, $rate){
+        $params = [
+            "amount" => $amount,
+            "rate" => $rate,
+            "price" => null,
+            "offerType" => 'SELL',
             "mode" => "limit",
             "postOnly" => null,
             "fillOrKill" => null
